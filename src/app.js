@@ -2,60 +2,95 @@ const express = require('express');
 const app = express();
 require('dotenv').config();
 const { connectDB } = require('./config/database');
-const UserModel = require('./models/user');
-const e = require('express');
+
+const User = require('./models/user');
 const port = 3000;
 
 app.use(express.json());
 
 app.post('/signup', async (req, res) => {
+  //   Creating a new instance of the User model
+  const user = new User(req.body);
+
   try {
-    const { firstName, lastName, email, password } = req.body;
-    const userObj = { firstName, lastName, email, password };
-
-    const user = new UserModel(userObj);
-
     await user.save();
-    let data = await UserModel.find({});
-    let response = {
-      data,
-      count: data.length,
-    };
-    res.send(response);
+    res.send('User Added successfully!');
   } catch (err) {
-    console.error(err);
-    res.status(500).send({ Error: err.message });
+    res.status(400).send('Error saving the user:' + err.message);
   }
 });
 
-app.patch('/users/:id', async (req, res) => {
-  const { id } = req.params;
-  const data = req.body;
-  try {
-    const updatedUser = await UserModel.findByIdAndUpdate(id, data, {
-      new: true,
-    });
-    if (!updatedUser) {
-      return res.status(404).send('User not found');
-    }
-    res.send(updatedUser);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({ Error: err.message });
-  }
-});
+// Get user by email
+app.get('/user', async (req, res) => {
+  const userEmail = req.body.emailId;
 
-app.get('/feeds', async (req, res) => {
   try {
-    const users = await UserModel.find({});
-    if (users.length === 0) {
-      return res.status(404).send('No users found');
+    console.log(userEmail);
+    const user = await User.findOne({ emailId: userEmail });
+    if (!user) {
+      res.status(404).send('User not found');
     } else {
-      res.send(users);
+      res.send(user);
     }
+
+    // const users = await User.find({ emailId: userEmail });
+    // if (users.length === 0) {
+    //   res.status(404).send("User not found");
+    // } else {
+    //   res.send(users);
+    // }
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Server Error');
+    res.status(400).send('Something went wrong ');
+  }
+});
+
+// Feed API - GET /feed - get all the users from the database
+app.get('/feed', async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.send(users);
+  } catch (err) {
+    res.status(400).send('Something went wrong ');
+  }
+});
+
+// Detele a user from the database
+app.delete('/user', async (req, res) => {
+  const userId = req.body.userId;
+  try {
+    const user = await User.findByIdAndDelete({ _id: userId });
+    //const user = await User.findByIdAndDelete(userId);
+
+    res.send('User deleted successfully');
+  } catch (err) {
+    res.status(400).send('Something went wrong ');
+  }
+});
+
+// Update data of the user
+app.patch('/user/:userId', async (req, res) => {
+  const userId = req.params?.userId;
+  const data = req.body;
+
+  try {
+    const ALLOWED_UPDATES = ['photoUrl', 'about', 'gender', 'age', 'skills'];
+    const isUpdateAllowed = Object.keys(data).every((k) =>
+      ALLOWED_UPDATES.includes(k)
+    );
+    if (!isUpdateAllowed) {
+      throw new Error('Update not allowed');
+    }
+    if (data?.skills.length > 10) {
+      throw new Error('Skills cannot be more than 10');
+    }
+    const user = await User.findByIdAndUpdate({ _id: userId }, data, {
+      returnDocument: 'after',
+      runValidators: true,
+    });
+    console.log(user);
+    res.send('User updated successfully');
+  } catch (err) {
+    res.status(400).send('UPDATE FAILED:' + err.message);
   }
 });
 

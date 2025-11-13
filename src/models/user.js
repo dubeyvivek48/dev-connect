@@ -1,38 +1,70 @@
 const mongoose = require('mongoose');
-const { Schema, model } = mongoose;
+const validator = require('validator');
 
-const userSchema = new Schema(
+const userSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
       required: true,
-      trim: true,
-      minlength: [3, 'First name must be at least 3 characters'],
+      minLength: 4,
+      maxLength: 50,
     },
-    lastName: { type: String, trim: true },
-    email: {
+    lastName: {
+      type: String,
+    },
+    emailId: {
+      type: String,
+      lowercase: true,
+      required: true,
+      unique: true,
+      trim: true,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error('Invalid email address: ' + value);
+        }
+      },
+    },
+    password: {
       type: String,
       required: true,
-      unique: [true, 'Email must be unique'],
-      trim: true,
-      lowercase: true,
+      validate(value) {
+        if (!validator.isStrongPassword(value)) {
+          throw new Error('Enter a Strong Password: ' + value);
+        }
+      },
     },
-    password: { type: String, required: true },
-    age: { type: Number },
-    skills: { type: [String], default: ['javascript'] },
-    gender: { type: String, enum: ['Male', 'Female', 'Other'] },
-    photoURL: {
+    age: {
+      type: Number,
+      min: 18,
+    },
+    gender: {
       type: String,
-      default:
-        'https://www.google.com/url?sa=i&url=https%3A%2F%2Fpngtree.com%2Fso%2Fuser&psig=AOvVaw1IXIW8EEGLlaufyGTacJv5&ust=1763137784612000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCJiZ_Z3G75ADFQAAAAAdAAAAABAE',
+      validate(value) {
+        if (!['male', 'female', 'others'].includes(value)) {
+          throw new Error('Gender data is not valid');
+        }
+      },
+    },
+    photoUrl: {
+      type: String,
+      default: 'https://geographyandyou.com/images/user-profile.png',
+      validate(value) {
+        if (!validator.isURL(value)) {
+          throw new Error('Invalid Photo URL: ' + value);
+        }
+      },
+    },
+    about: {
+      type: String,
+      default: 'This is a default about of the user!',
+    },
+    skills: {
+      type: [String],
     },
   },
-  { timestamps: true }
-);
-const UserModel = model(
-  'User',
-  //   userSchema
-  userSchema.index({ email: 1 }, { unique: true })
+  {
+    timestamps: true,
+  }
 );
 
-module.exports = UserModel;
+module.exports = mongoose.model('User', userSchema);
