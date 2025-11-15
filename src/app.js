@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 require('dotenv').config();
 const bcrypt = require('bcrypt');
+var cookieParser = require('cookie-parser');
+var jwt = require('jsonwebtoken');
 const { connectDB } = require('./config/database');
 const { validateSignupData } = require('./utils/validation');
 
@@ -9,6 +11,7 @@ const User = require('./models/user');
 const port = 3000;
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post('/signup', async (req, res) => {
   //   Creating a new instance of the User model
@@ -46,7 +49,30 @@ app.post('/login', async (req, res) => {
         .status(401)
         .send('Authentication failed. The provided credentials are invalid.😒');
     }
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+    res.cookie('token', token, { httpOnly: true });
     res.send('Login successful😊');
+  } catch (err) {
+    res.status(400).send('Something went wrong ');
+  }
+});
+
+app.get('/profile', async (req, res) => {
+  const token = req.cookies.token;
+
+  try {
+    if (!token) {
+      return res.status(401).send('Unauthorized access');
+    }
+    const userId = jwt.verify(token, process.env.JWT_SECRET).userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).send('User not found');
+    } else {
+      res.send(user);
+    }
   } catch (err) {
     res.status(400).send('Something went wrong ');
   }
@@ -64,13 +90,6 @@ app.get('/user', async (req, res) => {
     } else {
       res.send(user);
     }
-
-    // const users = await User.find({ emailId: userEmail });
-    // if (users.length === 0) {
-    //   res.status(404).send("User not found");
-    // } else {
-    //   res.send(users);
-    // }
   } catch (err) {
     res.status(400).send('Something went wrong ');
   }
