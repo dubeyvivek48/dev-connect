@@ -7,16 +7,19 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       minLength: 4,
+      trim: true,
       maxLength: 50,
     },
     lastName: {
       type: String,
+      trim: true,
     },
     emailId: {
       type: String,
       lowercase: true,
       required: true,
       unique: true,
+      index: true,
       trim: true,
       validate(value) {
         if (!validator.isEmail(value)) {
@@ -56,6 +59,7 @@ const userSchema = new mongoose.Schema(
     },
     about: {
       type: String,
+      trim: true,
       default: 'This is a default about of the user!',
     },
     skills: {
