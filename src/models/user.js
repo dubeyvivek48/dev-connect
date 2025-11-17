@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema(
   {
@@ -18,7 +20,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
       required: true,
-      unique: true,
+      unique: [true, 'Email address already registered. 😶‍🌫️'],
       index: true,
       trim: true,
       validate(value) {
@@ -70,5 +72,17 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+userSchema.methods.getJWTToken = async function () {
+  const token = await jwt.sign({ userId: this._id }, process.env.JWT_SECRET, {
+    expiresIn: '7d',
+  });
+  return token;
+};
+
+userSchema.methods.verifyPassword = async function (plainPassword) {
+  return await bcrypt.compare(plainPassword, this.password);
+};
+
+userSchema.index({ emailId: 1 }, { unique: true, name: 'emailId_1_unique' });
 
 module.exports = mongoose.model('User', userSchema);
