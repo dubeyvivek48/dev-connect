@@ -17,4 +17,28 @@ function validateSignupData(req) {
     throw new Error('Please enter a strong password');
   }
 }
-module.exports = { validateSignupData };
+
+function validateProfileUpdateData(req) {
+  const allowedUpdates = ['age', 'skills', 'gender', 'photoUrl', 'about'];
+  const updates = Object.keys(req.body);
+  const data = req.body;
+  const isValidOperation = updates.every((update) =>
+    allowedUpdates.includes(update)
+  );
+  if (!isValidOperation) {
+    throw new Error(
+      'Invalid updates! You can only update age, skills, and photoUrl.'
+    );
+  }
+  if (data.age !== undefined && data.age < 18) {
+    throw new Error('Age must be at least 18.');
+  }
+  if (data.photoUrl !== undefined && !validator.isURL(data.photoUrl)) {
+    throw new Error('Invalid Photo URL.');
+  }
+  if (data.skills !== undefined && !Array.isArray(data.skills)) {
+    throw new Error('Skills must be an array of strings.');
+  }
+}
+
+module.exports = { validateSignupData, validateProfileUpdateData };

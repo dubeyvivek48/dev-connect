@@ -83,6 +83,11 @@ userSchema.methods.verifyPassword = async function (plainPassword) {
   return await bcrypt.compare(plainPassword, this.password);
 };
 
+userSchema.methods.hashPassword = async function (password) {
+  this.password = await bcrypt.hash(password, 10);
+  console.log('Hashed Password:', this.password);
+};
+
 userSchema.index({ emailId: 1 }, { unique: true, name: 'emailId_1_unique' });
 
 module.exports = mongoose.model('User', userSchema);
