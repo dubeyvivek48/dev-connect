@@ -11,6 +11,7 @@ const User = require('./models/user');
 const { userAuth } = require('./middlewares/auth');
 const { authRoute } = require('./routes/authRoute');
 const { profileRouter } = require('./routes/profileRoute');
+const { connectionRoute } = require('./routes/connectionRoute');
 const port = 3000;
 
 app.use(express.json());
@@ -18,6 +19,7 @@ app.use(cookieParser());
 
 app.use('/', authRoute);
 app.use('/', profileRouter);
+app.use('/', connectionRoute);
 
 // Get user by email
 // app.get('/user', async (req, res) => {
