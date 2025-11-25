@@ -2,7 +2,8 @@ const express = require('express');
 const app = express();
 require('dotenv').config();
 const bcrypt = require('bcrypt');
-var cookieParser = require('cookie-parser');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
 
 const { connectDB } = require('./config/database');
 const { validateSignupData } = require('./utils/validation');
@@ -15,9 +16,25 @@ const { connectionRoute } = require('./routes/connectionRoute');
 const { userRoute } = require('./routes/user');
 const port = 3000;
 
+const FRONTEND = 'http://localhost:5173';
 app.use(express.json());
 app.use(cookieParser());
+app.use(
+  cors({
+    origin: FRONTEND, // Replace with your frontend's actual origin
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'], // Add any custom headers your frontend sends
+  })
+);
 
+// app.options(
+//   /.*/,
+//   cors({
+//     origin: FRONTEND,
+//     credentials: true,
+//   })
+// );
 app.use('/', authRoute);
 app.use('/', profileRouter);
 app.use('/', connectionRoute);

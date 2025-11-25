@@ -23,7 +23,12 @@ authRoute.post('/signup', async (req, res) => {
     await user.save();
 
     const token = await user.getJWTToken();
-    res.cookie('token', token, { httpOnly: true });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: false, // must be false for localhost (HTTP)
+      sameSite: 'lax', // should NOT be "none" for localhost
+      maxAge: 24 * 60 * 60 * 1000,
+    });
     res.status(201).send('User Added successfully!');
   } catch (err) {
     res.status(400).send({ ERROR: err.message });
@@ -47,7 +52,12 @@ authRoute.post('/login', async (req, res) => {
         .send('Authentication failed. The provided credentials are invalid.😒');
     }
     const token = await user.getJWTToken();
-    res.cookie('token', token, { httpOnly: true });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: false, // must be false for localhost (HTTP)
+      sameSite: 'lax', // should NOT be "none" for localhost
+      maxAge: 24 * 60 * 60 * 1000,
+    });
     res.send('Login successful😊');
   } catch (err) {
     console.log(err.message);
