@@ -6,9 +6,9 @@ const { validateProfileUpdateData } = require('../utils/validation');
 profileRouter.get('/profile/view', userAuth, (req, res) => {
   try {
     let profile = req.user;
-    res.status(200).send({ profile });
+    res.status(200).send({ profile, message: 'Profile fetched successfully' });
   } catch (err) {
-    res.status(400).send('Something went wrong 😒..');
+    res.status(400).send({ ERROR: err.message || 'Something went wrong 😒..' });
   }
 });
 profileRouter.patch('/profile/edit', userAuth, async (req, res) => {

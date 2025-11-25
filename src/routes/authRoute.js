@@ -5,6 +5,21 @@ const User = require('../models/user');
 const { userAuth } = require('../middlewares/auth');
 
 const authRoute = express.Router();
+const allowedUserFields = [
+  '_id',
+  'firstName',
+  'lastName',
+  'emailId',
+  'photoUrl',
+  'about',
+  'skills',
+];
+
+const getAllowedData = (data) => {
+  return allowedUserFields.reduce((ac, item) => {
+    return { ...ac, [item]: data?.[item] };
+  }, {});
+};
 
 authRoute.post('/signup', async (req, res) => {
   //   Creating a new instance of the User model
@@ -20,7 +35,7 @@ authRoute.post('/signup', async (req, res) => {
       emailId,
       password: hashedPassword,
     });
-    await user.save();
+    const data = await user.save();
 
     const token = await user.getJWTToken();
     res.cookie('token', token, {
@@ -29,7 +44,10 @@ authRoute.post('/signup', async (req, res) => {
       sameSite: 'lax', // should NOT be "none" for localhost
       maxAge: 24 * 60 * 60 * 1000,
     });
-    res.status(201).send('User Added successfully!');
+    res.json({
+      message: 'User Added successfully!',
+      data: getAllowedData(data),
+    });
   } catch (err) {
     res.status(400).send({ ERROR: err.message });
   }
@@ -58,17 +76,21 @@ authRoute.post('/login', async (req, res) => {
       sameSite: 'lax', // should NOT be "none" for localhost
       maxAge: 24 * 60 * 60 * 1000,
     });
-    res.send('Login successful😊');
+
+    res.json({
+      message: 'Login successful😊',
+      data: getAllowedData(user),
+    });
   } catch (err) {
     console.log(err.message);
-    res.status(400).send('Something went wrong 😒..');
+    res.status(400).send({ ERROR: err.message || 'Something went wrong 😒..' });
   }
 });
 
 authRoute.post('/logout', (req, res) => {
   res.cookie('token', '', { httpOnly: true, expires: new Date(0) });
 
-  res.send(`Logout successfully 😊`);
+  res.send({ message: `Logout successfully 😊` });
 });
 
 module.exports = { authRoute };

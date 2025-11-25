@@ -6,21 +6,21 @@ const userAuth = async (req, res, next) => {
 
   try {
     if (!token) {
-      return res.status(401).send('Unauthorized access');
+      return res.status(401).send({ ERROR: 'Unauthorized access' });
     } else {
       const userId = jwt.verify(token, process.env.JWT_SECRET).userId;
 
       const user = await User.findById(userId);
 
       if (!user) {
-        res.status(404).send('User not found');
+        res.status(404).send({ ERROR: 'User not found' });
       } else {
         req.user = user;
         next();
       }
     }
   } catch (err) {
-    res.status(400).send('Something went wrong--- 😒 ');
+    res.status(400).send({ ERROR: 'Something went wrong--- 😒 ' });
   }
 };
 
