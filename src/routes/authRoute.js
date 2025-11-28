@@ -3,23 +3,9 @@ const bcrypt = require('bcrypt');
 const { validateSignupData } = require('../utils/validation');
 const User = require('../models/user');
 const { userAuth } = require('../middlewares/auth');
+const { allowedUserFields, getAllowedData } = require('../utils/constants');
 
 const authRoute = express.Router();
-const allowedUserFields = [
-  '_id',
-  'firstName',
-  'lastName',
-  'emailId',
-  'photoUrl',
-  'about',
-  'skills',
-];
-
-const getAllowedData = (data) => {
-  return allowedUserFields.reduce((ac, item) => {
-    return { ...ac, [item]: data?.[item] };
-  }, {});
-};
 
 authRoute.post('/signup', async (req, res) => {
   //   Creating a new instance of the User model
@@ -58,16 +44,16 @@ authRoute.post('/login', async (req, res) => {
   try {
     const user = await User.findOne({ emailId });
     if (!user) {
-      return res
-        .status(401)
-        .send('Authentication failed. The provided credentials are invalid.😒');
+      return res.status(401).send({
+        ERROR: 'Authentication failed. The provided credentials are invalid.😒',
+      });
     }
 
     const isPasswordMatch = await user.verifyPassword(password);
     if (!isPasswordMatch) {
-      return res
-        .status(401)
-        .send('Authentication failed. The provided credentials are invalid.😒');
+      return res.status(401).send({
+        ERROR: 'Authentication failed. The provided credentials are invalid.😒',
+      });
     }
     const token = await user.getJWTToken();
     res.cookie('token', token, {

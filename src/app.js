@@ -23,7 +23,7 @@ app.use(
   cors({
     origin: FRONTEND, // Replace with your frontend's actual origin
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'], // Add any custom headers your frontend sends
   })
 );

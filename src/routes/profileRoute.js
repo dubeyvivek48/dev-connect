@@ -2,11 +2,15 @@ const express = require('express');
 const profileRouter = express.Router();
 const { userAuth } = require('../middlewares/auth');
 const { validateProfileUpdateData } = require('../utils/validation');
+const { getAllowedData } = require('../utils/constants');
 
 profileRouter.get('/profile/view', userAuth, (req, res) => {
   try {
-    let profile = req.user;
-    res.status(200).send({ profile, message: 'Profile fetched successfully' });
+    let profile = getAllowedData(req.user);
+
+    res
+      .status(200)
+      .send({ data: profile, message: 'Profile fetched successfully' });
   } catch (err) {
     res.status(400).send({ ERROR: err.message || 'Something went wrong 😒..' });
   }
@@ -20,9 +24,11 @@ profileRouter.patch('/profile/edit', userAuth, async (req, res) => {
       req.user[update] = req.body[update];
     });
     await req.user.save();
-    res.status(200).send({ profile: req.user });
+    res
+      .status(200)
+      .send({ data: req.user, message: 'Profile sucessfully updated' });
   } catch (err) {
-    res.status(400).send(err.message);
+    res.status(400).send({ ERROR: err.message });
   }
 });
 
